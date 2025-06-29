@@ -1,0 +1,7 @@
+RewriteEngine On
+
+# Si ya está pidiendo algo dentro de public, no reescribas
+RewriteCond %{REQUEST_URI} !^/gestion-academica/public/
+
+# Redirige todo lo demás a public/
+RewriteRule ^(.*)$ public/$1 [L,QSA]
