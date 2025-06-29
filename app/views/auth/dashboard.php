@@ -9,7 +9,7 @@
 <body>
   <h1>Bienvenido al Dashboard</h1>
   <p>Has iniciado sesión correctamente.</p>
-  <a href="/logout">Cerrar sesión</a>
+  <a href="./?url=auth/logout">Cerrar sesión</a>
 </body>
 
 </html>

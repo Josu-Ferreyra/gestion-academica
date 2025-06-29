@@ -16,8 +16,8 @@
 
   <form method="post" action="?url=auth/login">
     <label>
-      Usuario:
-      <input type="text" name="username" required>
+      Email de Usuario:
+      <input type="email" name="email" required>
     </label><br><br>
     <label>
       Contraseña:

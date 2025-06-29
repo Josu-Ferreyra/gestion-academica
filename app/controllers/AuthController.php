@@ -3,25 +3,27 @@
 require_once __DIR__ . '/../models/User.php';
 
 class AuthController {
+
   public function showLogin() {
-    require __DIR__ . '/../views/auth/login.php';
+    require_once __DIR__ . '/../views/auth/login.php';
   }
 
   public function login() {
-    $username = $_POST['username'] ?? '';
+    $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
     $password_hash = md5($password);
 
-    $user = User::findByUsername($username);
+    $user = User::findByEmail($email);
 
-    if ($user && ($password_hash === $user->contrasena)) {
-      $_SESSION['user_id'] = $user->id_usuario;
+    if ($user && ($password_hash === $user->password)) {
+      $_SESSION['user_id'] = $user->user_id;
+      $_SESSION['rol'] = $user->rol;
       header('Location: ./?url=auth/dashboard');
       exit;
     }
 
     $error = 'Credenciales inválidas';
-    require __DIR__ . '/../views/auth/login.php';
+    require_once __DIR__ . '/../views/auth/login.php';
   }
 
   public function dashboard() {
@@ -29,7 +31,7 @@ class AuthController {
       header('Location: /gestion-academica');
       exit;
     }
-    require __DIR__ . '/../views/auth/dashboard.php';
+    require_once __DIR__ . '/../views/auth/dashboard.php';
   }
 
   public function logout() {
