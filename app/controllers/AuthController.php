@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Usuario.php';
 
 class AuthController {
 
@@ -13,7 +13,7 @@ class AuthController {
     $password = $_POST['password'] ?? '';
     $password_hash = md5($password);
 
-    $user = User::findByEmail($email);
+    $user = Usuario::findByEmail($email);
 
     if ($user && ($password_hash === $user->password)) {
       $_SESSION['user_id'] = $user->user_id;

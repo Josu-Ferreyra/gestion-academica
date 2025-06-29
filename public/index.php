@@ -3,7 +3,7 @@ session_start();
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
-require_once __DIR__ . '/../app/models/User.php';
+require_once __DIR__ . '/../app/models/Usuario.php';
 
 $url = $_GET['url'] ?? 'auth';
 $parts = explode('/', trim($url, '/'));
