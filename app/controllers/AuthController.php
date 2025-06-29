@@ -2,15 +2,12 @@
 
 require_once __DIR__ . '/../models/User.php';
 
-class AuthController
-{
-  public function showLogin()
-  {
+class AuthController {
+  public function showLogin() {
     require __DIR__ . '/../views/auth/login.php';
   }
 
-  public function login()
-  {
+  public function login() {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     $password_hash = md5($password);
@@ -27,8 +24,7 @@ class AuthController
     require __DIR__ . '/../views/auth/login.php';
   }
 
-  public function dashboard()
-  {
+  public function dashboard() {
     if (empty($_SESSION['user_id'])) {
       header('Location: /gestion-academica');
       exit;
@@ -36,8 +32,7 @@ class AuthController
     require __DIR__ . '/../views/auth/dashboard.php';
   }
 
-  public function logout()
-  {
+  public function logout() {
     session_destroy();
     header('Location: /gestion-academica');
     exit;

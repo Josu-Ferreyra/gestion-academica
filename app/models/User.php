@@ -1,13 +1,11 @@
 <?php
 
-class User
-{
+class User {
   public $id_usuario;
   public $email;
   public $contrasena;
 
-  public static function findByUsername($username)
-  {
+  public static function findByUsername($username) {
     try {
       $pdo = new PDO(DB_DSN, DB_USER, DB_PASS);
       $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
