@@ -4,13 +4,19 @@ require_once __DIR__ . '/../models/Usuario.php';
 
 class AuthController {
 
-  public function showLogin() {
-    require_once __DIR__ . '/../views/auth/login.php';
-  }
-
+  /**
+   * Maneja el proceso de inicio de sesión.
+   */
   public function login() {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
+
+    if (empty($email) || empty($password)) {
+      $error = 'Por favor, complete todos los campos.';
+      require_once __DIR__ . '/../views/auth/login.php';
+      return;
+    }
+
     $password_hash = md5($password);
 
     $user = Usuario::findByEmail($email);
@@ -18,7 +24,8 @@ class AuthController {
     if ($user && ($password_hash === $user->password)) {
       $_SESSION['user_id'] = $user->user_id;
       $_SESSION['rol'] = $user->rol;
-      header('Location: ./?url=auth/dashboard');
+
+      header('Location: ./?url=auth/loadView');
       exit;
     }
 
@@ -26,14 +33,31 @@ class AuthController {
     require_once __DIR__ . '/../views/auth/login.php';
   }
 
-  public function dashboard() {
-    if (empty($_SESSION['user_id'])) {
-      header('Location: /gestion-academica');
+  /**
+   * Carga la vista principal según el rol del usuario.
+   */
+  public function loadView() {
+    if (empty($_SESSION['user_id']) || empty($_SESSION['rol'])) {
+      require_once __DIR__ . '/../views/auth/login.php';
       exit;
     }
-    require_once __DIR__ . '/../views/auth/dashboard.php';
+
+    switch ($_SESSION['rol']) {
+      case 'alumno':
+        header('Location: ./?url=alumno/home');
+        exit;
+      case 'profesor':
+        header('Location: ./?url=profesor/home');
+        exit;
+      default:
+        $this->logout();
+        exit;
+    }
   }
 
+  /**
+   * Maneja el cierre de sesión del usuario.
+   */
   public function logout() {
     session_destroy();
     header('Location: /gestion-academica');
