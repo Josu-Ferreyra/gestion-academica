@@ -5,7 +5,7 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/AlumnoController.php';
-require_once __DIR__ . '/../app/models/Usuario.php';
+require_once __DIR__ . '/../app/controllers/ProfesorController.php';
 
 /**
  * Función para manejar el enrutamiento de la aplicación.
