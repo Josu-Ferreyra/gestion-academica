@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jul 02, 2025 at 05:29 PM
+-- Generation Time: Jul 02, 2025 at 06:49 PM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -25,6 +25,51 @@ DELIMITER $$
 --
 -- Procedures
 --
+DROP PROCEDURE IF EXISTS `actualizar_notas_alumnos`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `actualizar_notas_alumnos` (IN `p_datos` JSON, IN `p_id_materia` INT, IN `p_anio` INT)   BEGIN
+    DECLARE v_id_alumno INT;
+    DECLARE v_parcial_1 FLOAT;
+    DECLARE v_parcial_2 FLOAT;
+    DECLARE v_recuperatorio_1 FLOAT;
+    DECLARE v_recuperatorio_2 FLOAT;
+    DECLARE v_nota_final FLOAT;
+    DECLARE v_index INT DEFAULT 0;
+    DECLARE v_total INT;
+
+    -- Obtener el número total de registros en el JSON
+    SET v_total = JSON_LENGTH(p_datos);
+
+    WHILE v_index < v_total DO
+        -- Extraer los datos de cada registro
+        SET v_id_alumno = JSON_UNQUOTE(JSON_EXTRACT(p_datos, CONCAT('$[', v_index, '].id_alumno')));
+        SET v_parcial_1 = JSON_UNQUOTE(JSON_EXTRACT(p_datos, CONCAT('$[', v_index, '].parcial_1')));
+        SET v_parcial_2 = JSON_UNQUOTE(JSON_EXTRACT(p_datos, CONCAT('$[', v_index, '].parcial_2')));
+        SET v_recuperatorio_1 = JSON_UNQUOTE(JSON_EXTRACT(p_datos, CONCAT('$[', v_index, '].recuperatorio_1')));
+        SET v_recuperatorio_2 = JSON_UNQUOTE(JSON_EXTRACT(p_datos, CONCAT('$[', v_index, '].recuperatorio_2')));
+        SET v_nota_final = JSON_UNQUOTE(JSON_EXTRACT(p_datos, CONCAT('$[', v_index, '].nota_final')));
+
+        -- Actualizar las notas en la tabla evaluacion
+        UPDATE evaluacion
+        SET nota = CASE
+            WHEN id_tipo = 1 THEN v_parcial_1
+            WHEN id_tipo = 2 THEN v_parcial_2
+            WHEN id_tipo = 3 THEN v_recuperatorio_1
+            WHEN id_tipo = 4 THEN v_recuperatorio_2
+            ELSE v_nota_final
+        END
+        WHERE id_inscripcion IN (
+            SELECT id_inscripcion
+            FROM inscripcion_materia
+            WHERE id_alumno = v_id_alumno
+              AND id_materia = p_id_materia
+              AND anio_academico = p_anio
+        );
+
+        -- Incrementar el índice
+        SET v_index = v_index + 1;
+    END WHILE;
+END$$
+
 DROP PROCEDURE IF EXISTS `calcular_notas_finales_promocionadas`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `calcular_notas_finales_promocionadas` ()   BEGIN
     DECLARE done INT DEFAULT FALSE;
@@ -313,7 +358,7 @@ CREATE TABLE IF NOT EXISTS `evaluacion` (
 
 INSERT INTO `evaluacion` (`id_evaluacion`, `id_inscripcion`, `id_tipo`, `fecha`, `nota`) VALUES
 (1, 1, 1, '2025-04-18', 6.0),
-(2, 1, 2, '2025-04-18', 9.0),
+(2, 1, 2, '2025-04-18', 4.0),
 (3, 2, 1, '2025-04-18', 9.0),
 (4, 2, 2, '2025-04-18', 3.0),
 (5, 2, 4, '2025-04-30', 6.0),
@@ -321,8 +366,8 @@ INSERT INTO `evaluacion` (`id_evaluacion`, `id_inscripcion`, `id_tipo`, `fecha`,
 (7, 3, 2, '2025-04-18', 8.0),
 (8, 4, 1, '2025-04-18', 2.0),
 (9, 4, 2, '2025-04-18', 3.0),
-(10, 4, 3, '2025-04-18', 4.0),
-(11, 4, 4, '2025-04-30', 4.0),
+(10, 4, 3, '2025-04-18', 6.0),
+(11, 4, 4, '2025-04-30', 6.0),
 (12, 5, 1, '2025-04-18', 9.0),
 (13, 5, 2, '2025-04-18', 9.5),
 (14, 6, 1, '2025-04-18', 5.0),
