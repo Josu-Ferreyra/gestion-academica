@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '../../models/Alumno.php';
+require_once __DIR__ . '../../models/Materia.php';
 require_once __DIR__ . '../../models/Carrera.php';
 
 class AlumnoController {
@@ -35,9 +36,11 @@ class AlumnoController {
 
     $this->alumno->id_alumno = $alumnoDetails['id_alumno'];
 
-    $inscripciones = $this->alumno->getAllInscripcionMateriaAlumno();
     $carrera = new Carrera();
+    $materia = new Materia();
+
     $materias = $carrera->getAllMateriaCarrera($alumnoDetails['id_carrera']);
+    $inscripciones = $materia->getMateriaAlumno($this->alumno->id_alumno);
 
     $materiasAlumno = $this->organizarMateriasAlumno($materias, $inscripciones);
 
@@ -66,15 +69,38 @@ class AlumnoController {
     foreach ($inscripciones as $inscripcion) {
       $materiasAlumno[$inscripcion['id_materia']]['inscripciones'][] = [
         'anio_academico' => $inscripcion['anio_academico'],
-        'semestre' => $inscripcion['semestre'],
-        'intentos_final' => $inscripcion['intentos_final'],
-        'nombre_materia' => $inscripcion['nombre_materia'],
         'estado_inscripcion' => $inscripcion['estado_inscripcion'],
-        'fecha_evaluacion' => $inscripcion['fecha_evaluacion'],
-        'nota_evaluacion' => $inscripcion['nota_evaluacion']
+        'parcial_1' => $inscripcion['parcial_1'],
+        'parcial_2' => $inscripcion['parcial_2'],
+        'recuperatorio_1' => $inscripcion['recuperatorio_1'],
+        'recuperatorio_2' => $inscripcion['recuperatorio_2'],
+        'nota_final' => $inscripcion['nota_final']
       ];
     }
 
     return $materiasAlumno;
+  }
+
+  public function inscribirMateria() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+      $materiaId = $_POST['materia_id'] ?? null;
+      $alumnoDetails = $this->alumno->getAlumnoDetails();
+      $alumnoId = $alumnoDetails['id_alumno'] ?? null;
+
+      if (!is_numeric($materiaId) || $materiaId <= 0) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'ID de materia inválido']);
+        exit;
+      }
+      $materia = new Materia();
+      $resultado = $materia->inscribirAlumnoMateria($alumnoId, $materiaId);
+      header('Content-Type: application/json');
+      echo json_encode($resultado);
+      exit;
+    } else {
+      header('Content-Type: application/json');
+      echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+      exit;
+    }
   }
 }

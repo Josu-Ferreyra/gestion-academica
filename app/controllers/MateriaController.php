@@ -24,7 +24,17 @@ class MateriaController {
       exit;
     }
 
-    $alumnos = $this->materia->getMateriaAlumnos($materiaId);
+    // Cargar la vista correspondiente
+    require_once __DIR__ . '/../views/profesor/detalle_materia.php';
+  }
+
+  public function getAllMateriaAlumnosByYear($materiaId, $year) {
+    if (!is_numeric($materiaId) || $materiaId <= 0 || !is_numeric($year) || $year <= 0) {
+      header('Location: /error');
+      exit;
+    }
+
+    $alumnos = $this->materia->getAllMateriaAlumnosByYear($materiaId, $year);
 
     if ($alumnos === false) {
       header('Location: /error');
@@ -32,6 +42,28 @@ class MateriaController {
     }
 
     // Cargar la vista correspondiente
-    require_once __DIR__ . '/../views/profesor/detalle_materia.php';
+    require_once __DIR__ . '/../views/profesor/tabla_alumnos.php';
+  }
+
+  public function updateNotas($id_materia, $year) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      header('Location: /error');
+      exit;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (!isset($data['alumnos']) || !is_array($data['alumnos'])) {
+      header('Location: /error');
+      exit;
+    }
+
+    $result = $this->materia->updateNotas($data['alumnos'], $id_materia, $year);
+
+    if ($result) {
+      echo json_encode(['success' => true]);
+    } else {
+      echo json_encode(['success' => false]);
+    }
+    exit;
   }
 }

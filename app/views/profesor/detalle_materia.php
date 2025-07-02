@@ -1,50 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Materia</title>
+  <script>
+    function loadTablaAlumnos(materiaId, year) {
+      const tablaAlumnos = document.querySelector('#tablaAlumnos');
+
+      fetch(`./?url=materia/getAllMateriaAlumnosByYear/${materiaId}/${year}`)
+        .then(response => response.text())
+        .then(data => {
+          tablaAlumnos.innerHTML = data;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const yearSelect = document.getElementById('yearSelect');
+      const editButton = document.getElementById('editButton');
+      const saveButton = document.getElementById('saveButton');
+      const tablaAlumnos = document.querySelector('#tablaAlumnos');
+      const materiaId = new URLSearchParams(window.location.search).get('url').split('/')[2];
+
+      // Load initial data for the current year
+      loadTablaAlumnos(materiaId, yearSelect.value);
+
+      // Handle year change
+      yearSelect.addEventListener('change', () => {
+        const selectedYear = yearSelect.value;
+        loadTablaAlumnos(materiaId, selectedYear);
+      });
+
+    });
+  </script>
 </head>
 
 <body>
   <h1>Alumnos Inscriptos en la Materia</h1>
-  <table border="1">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Apellido</th>
-        <th>Parcial 1</th>
-        <th>Parcial 2</th>
-        <th>Recuperatorio Parcial 1</th>
-        <th>Recuperatorio Parcial 2</th>
-        <th>Final</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php if (!empty($alumnos)): ?>
-        <?php foreach ($alumnos as $alumno): ?>
-          <tr>
-            <td><?php echo htmlspecialchars($alumno['id_alumno']); ?></td>
-            <td><?php echo htmlspecialchars($alumno['nombre_alumno']); ?></td>
-            <td><?php echo htmlspecialchars($alumno['apellido_alumno']); ?></td>
-            <td><?php echo htmlspecialchars($alumno['parcial_1'] ?? 'N/A'); ?></td>
-            <td><?php echo htmlspecialchars($alumno['parcial_2'] ?? 'N/A'); ?></td>
-            <td><?php echo htmlspecialchars($alumno['recuperatorio_1'] ?? 'N/A'); ?></td>
-            <td><?php echo htmlspecialchars($alumno['recuperatorio_2'] ?? 'N/A'); ?></td>
-            <td><?php echo htmlspecialchars($alumno['nota_final'] ?? 'N/A'); ?></td>
-            <td><?php echo htmlspecialchars($alumno['estado_inscripcion']); ?></td>
-          </tr>
-        <?php endforeach; ?>
-      <?php else: ?>
-        <tr>
-          <td colspan="5">No hay alumnos inscriptos en esta materia.</td>
-        </tr>
-      <?php endif; ?>
-    </tbody>
-  </table>
+  <div>
+    <label for="yearSelect">Año:</label>
+    <select id="yearSelect">
+      <option value="2024">2024</option>
+      <option value="2025" selected>2025</option>
+    </select>
+  </div>
+
+  <div id="tablaAlumnos"></div>
 </body>
 
 </html>

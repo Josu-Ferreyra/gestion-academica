@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jun 29, 2025 at 03:56 PM
+-- Generation Time: Jul 02, 2025 at 05:29 PM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -21,6 +21,200 @@ SET time_zone = "+00:00";
 -- Database: `gestion_academica`
 --
 
+DELIMITER $$
+--
+-- Procedures
+--
+DROP PROCEDURE IF EXISTS `calcular_notas_finales_promocionadas`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcular_notas_finales_promocionadas` ()   BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_id_inscripcion INT;
+    DECLARE v_parcial1 DECIMAL(3,1);
+    DECLARE v_parcial2 DECIMAL(3,1);
+    DECLARE v_promedio DECIMAL(3,1);
+    DECLARE v_id_tipo_final INT;
+
+    DECLARE cur CURSOR FOR
+        SELECT im.id_inscripcion
+        FROM inscripcion_materia im
+        JOIN estado_inscripcion_materia eim ON im.id_estado = eim.id_estado
+        WHERE eim.nombre = 'promocion'
+        AND NOT EXISTS (
+            SELECT 1 FROM evaluacion ev
+            JOIN tipo_evaluacion te ON ev.id_tipo = te.id_tipo
+            WHERE ev.id_inscripcion = im.id_inscripcion AND te.nombre = 'final'
+        );
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SELECT id_tipo INTO v_id_tipo_final FROM tipo_evaluacion WHERE nombre = 'final';
+
+    OPEN cur;
+
+    inscripciones_loop:LOOP
+        FETCH cur INTO v_id_inscripcion;
+        IF done THEN
+            LEAVE inscripciones_loop;
+        END IF;
+
+        SELECT MAX(ev.nota)
+        INTO v_parcial1
+        FROM evaluacion ev
+        JOIN tipo_evaluacion te ON ev.id_tipo = te.id_tipo
+        WHERE ev.id_inscripcion = v_id_inscripcion AND te.nombre = 'parcial1';
+
+        SELECT MAX(ev.nota)
+        INTO v_parcial2
+        FROM evaluacion ev
+        JOIN tipo_evaluacion te ON ev.id_tipo = te.id_tipo
+        WHERE ev.id_inscripcion = v_id_inscripcion AND te.nombre = 'parcial2';
+
+        SET v_promedio = ROUND((v_parcial1 + v_parcial2) / 2, 1);
+
+        INSERT INTO evaluacion(id_inscripcion, id_tipo, fecha, nota)
+        VALUES (v_id_inscripcion, v_id_tipo_final, CURDATE(), v_promedio);
+
+    END LOOP;
+
+    CLOSE cur;
+END$$
+
+DROP PROCEDURE IF EXISTS `cargar_datos_iniciales`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `cargar_datos_iniciales` ()   BEGIN
+    -- Desactivar restricciones temporales para evitar errores de integridad referencial
+    SET FOREIGN_KEY_CHECKS = 0;
+    
+    -- Desactivar lógica de trigger para evitar errores al cargar evaluaciones
+	SET @desactivar_trigger_final = TRUE;
+
+    -- Eliminar todos los registros de las tablas relacionadas, en orden adecuado
+    TRUNCATE TABLE evaluacion;
+    TRUNCATE TABLE inscripcion_materia;
+    TRUNCATE TABLE profesor_materia;
+    TRUNCATE TABLE profesor;
+    TRUNCATE TABLE alumno;
+    TRUNCATE TABLE usuario;
+
+    -- Restaurar restricciones de claves foráneas
+    SET FOREIGN_KEY_CHECKS = 1;
+
+    -- Insertar usuarios (alumnos y profesores)
+    INSERT INTO usuario(contrasena, id_rol, nombre, apellido, direccion, telefono, email, activo) VALUES 
+        (MD5('1234'), 2, 'Juan','Alonso','Calle Random 123','2616743521','juan.alonso@alumno.com', true),
+        (MD5('1234'), 2, 'Jorge','Perez','Calle Random 123','2616743521','jorge.perez@alumno.com', true),
+        (MD5('1234'), 2, 'Carla','Suarez','Calle Random 123','2616743521','carla.suarez@alumno.com', true),
+        (MD5('1234'), 2, 'Delfina','Quiroga','Calle Random 123','2616743521','delfina.quiroga@alumno.com', true),
+        (MD5('1234'), 2, 'Pablo','Ramiz','Calle Random 123','2616743521','pablo.ramiz@alumno.com', true),
+        (MD5('1234'), 2, 'Martina','Ruiz','Calle Random 123','2616743521','martina.ruiz@alumno.com', true),
+        (MD5('1234'), 3, 'Pedro','Alonso','Calle Random 124','2616743521','pedro.alonso@profesor.com', true),
+        (MD5('1234'), 3, 'Marisa','Rodriguez','Calle Random 124','2616743521','marisa.rodriguez@profesor.com', true);
+
+    -- Insertar alumnos (IDs se asignan automáticamente)
+    INSERT INTO alumno(id_usuario, id_carrera, fecha_ingreso) VALUES 
+        (1, 1, '2025-03-01'),
+        (2, 1, '2025-03-01'),
+        (3, 1, '2025-03-01'),
+        (4, 1, '2025-03-01'),
+        (5, 1, '2025-03-01'),
+        (6, 1, '2025-03-01');
+
+    -- Inscripciones (IDs automáticos)
+    INSERT INTO inscripcion_materia(id_alumno, id_materia, anio_academico, semestre) VALUES 
+        (1, 1, 2025, 1),
+        (2, 1, 2025, 1),
+        (3, 1, 2025, 1),
+        (4, 1, 2025, 1),
+        (5, 1, 2025, 1),
+        (6, 1, 2025, 1);
+
+    -- Evaluaciones (corresponden al id_inscripcion generado)
+    INSERT INTO evaluacion(id_inscripcion, id_tipo, fecha, nota) VALUES
+        (1,1,'2025-04-18',6),
+        (1,2,'2025-04-18',9),
+        (2,1,'2025-04-18',9),
+        (2,2,'2025-04-18',3),
+        (2,4,'2025-04-30',6),
+        (3,1,'2025-04-18',10),
+        (3,2,'2025-04-18',8),
+        (4,1,'2025-04-18',2),
+        (4,2,'2025-04-18',3),
+        (4,3,'2025-04-18',4),
+        (4,4,'2025-04-30',4),
+        (5,1,'2025-04-18',9),
+        (5,2,'2025-04-18',9.5),
+        (6,1,'2025-04-18',5),
+        (6,2,'2025-04-18',5),
+        (6,3,'2025-04-18',6),
+        (6,4,'2025-04-18',6);
+
+    -- Insertar profesores
+    INSERT INTO profesor(id_usuario, titulo_academico, especialidad) VALUES
+        (7, 'Profesor Universitario', 'Ciencias Exactas'),
+        (8, 'Profesor Universitario', 'Ciencias Exactas');
+
+    -- Relación profesor-materia
+    INSERT INTO profesor_materia(id_profesor, id_materia) VALUES
+        (1,1),
+        (2,1);
+        
+	-- Reactivar trigger y calcular notas finales
+	SET @desactivar_trigger_final = FALSE;
+	CALL calcular_notas_finales_promocionadas();
+
+END$$
+
+--
+-- Functions
+--
+DROP FUNCTION IF EXISTS `inscribir_alumno_materia`$$
+CREATE DEFINER=`root`@`localhost` FUNCTION `inscribir_alumno_materia` (`p_id_alumno` INT, `p_id_materia` INT) RETURNS VARCHAR(255) CHARSET utf8mb4 DETERMINISTIC BEGIN
+    DECLARE v_semestre_materia TINYINT;
+    DECLARE v_mes_actual TINYINT;
+    DECLARE v_anio_actual YEAR;
+    DECLARE v_inscripciones_existentes INT DEFAULT 0;
+    DECLARE v_msg VARCHAR(255);
+
+    -- Obtener el semestre al que pertenece la materia
+    SELECT semestre INTO v_semestre_materia
+    FROM materia
+    WHERE id_materia = p_id_materia;
+
+    SET v_mes_actual = MONTH(CURDATE());
+    SET v_anio_actual = YEAR(CURDATE());
+
+    -- Verificar si ya existe inscripción para ese alumno, materia y año
+    SELECT COUNT(*) INTO v_inscripciones_existentes
+    FROM inscripcion_materia
+    WHERE id_alumno = p_id_alumno
+      AND id_materia = p_id_materia
+      AND anio_academico = v_anio_actual;
+
+    IF v_inscripciones_existentes > 0 THEN
+        SET v_msg = 'Inscripción rechazada. Ya estás inscripto en esta materia para el año académico actual.';
+    
+    ELSEIF (v_semestre_materia = 1 AND v_mes_actual IN (12, 1, 2)) OR
+           (v_semestre_materia = 2 AND v_mes_actual IN (7, 8)) THEN
+
+        -- Insertar inscripción válida
+        INSERT INTO inscripcion_materia(id_alumno, id_materia, anio_academico, semestre)
+        VALUES (p_id_alumno, p_id_materia, v_anio_actual, v_semestre_materia);
+
+        SET v_msg = 'Inscripción realizada con éxito.';
+    
+    ELSE
+        -- Mensaje personalizado según el semestre
+        IF v_semestre_materia = 1 THEN
+            SET v_msg = 'Inscripción rechazada. Las materias del primer semestre solo pueden inscribirse en diciembre, enero o febrero. Por favor, intenta nuevamente en esas fechas.';
+        ELSE
+            SET v_msg = 'Inscripción rechazada. Las materias del segundo semestre solo pueden inscribirse en julio o agosto. Por favor, intenta nuevamente en esas fechas.';
+        END IF;
+    END IF;
+
+    RETURN v_msg;
+END$$
+
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -36,7 +230,19 @@ CREATE TABLE IF NOT EXISTS `alumno` (
   PRIMARY KEY (`id_alumno`),
   UNIQUE KEY `id_usuario` (`id_usuario`),
   KEY `id_carrera` (`id_carrera`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `alumno`
+--
+
+INSERT INTO `alumno` (`id_alumno`, `id_usuario`, `id_carrera`, `fecha_ingreso`) VALUES
+(1, 1, 1, '2025-03-01'),
+(2, 2, 1, '2025-03-01'),
+(3, 3, 1, '2025-03-01'),
+(4, 4, 1, '2025-03-01'),
+(5, 5, 1, '2025-03-01'),
+(6, 6, 1, '2025-03-01');
 
 -- --------------------------------------------------------
 
@@ -71,15 +277,16 @@ CREATE TABLE IF NOT EXISTS `estado_inscripcion_materia` (
   `nombre` varchar(50) NOT NULL,
   PRIMARY KEY (`id_estado`),
   UNIQUE KEY `nombre` (`nombre`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `estado_inscripcion_materia`
 --
 
 INSERT INTO `estado_inscripcion_materia` (`id_estado`, `nombre`) VALUES
-(2, 'promocionada'),
-(3, 'recursa'),
+(4, 'cursar'),
+(2, 'promocion'),
+(3, 'recursar'),
 (1, 'regular');
 
 -- --------------------------------------------------------
@@ -101,45 +308,97 @@ CREATE TABLE IF NOT EXISTS `evaluacion` (
 ) ;
 
 --
+-- Dumping data for table `evaluacion`
+--
+
+INSERT INTO `evaluacion` (`id_evaluacion`, `id_inscripcion`, `id_tipo`, `fecha`, `nota`) VALUES
+(1, 1, 1, '2025-04-18', 6.0),
+(2, 1, 2, '2025-04-18', 9.0),
+(3, 2, 1, '2025-04-18', 9.0),
+(4, 2, 2, '2025-04-18', 3.0),
+(5, 2, 4, '2025-04-30', 6.0),
+(6, 3, 1, '2025-04-18', 10.0),
+(7, 3, 2, '2025-04-18', 8.0),
+(8, 4, 1, '2025-04-18', 2.0),
+(9, 4, 2, '2025-04-18', 3.0),
+(10, 4, 3, '2025-04-18', 4.0),
+(11, 4, 4, '2025-04-30', 4.0),
+(12, 5, 1, '2025-04-18', 9.0),
+(13, 5, 2, '2025-04-18', 9.5),
+(14, 6, 1, '2025-04-18', 5.0),
+(15, 6, 2, '2025-04-18', 5.0),
+(16, 6, 3, '2025-04-18', 6.0),
+(17, 6, 4, '2025-04-18', 6.0),
+(18, 3, 5, '2025-07-02', 9.0),
+(19, 5, 5, '2025-07-02', 9.3);
+
+--
 -- Triggers `evaluacion`
 --
 DROP TRIGGER IF EXISTS `trg_actualizar_estado_inscripcion`;
 DELIMITER $$
 CREATE TRIGGER `trg_actualizar_estado_inscripcion` AFTER INSERT ON `evaluacion` FOR EACH ROW BEGIN
-    DECLARE notas_bajas TINYINT DEFAULT 0;
-    DECLARE todas_7 TINYINT DEFAULT 1;
+    DECLARE p1 DECIMAL(3,1);
+    DECLARE p2 DECIMAL(3,1);
+    DECLARE r1 DECIMAL(3,1);
+    DECLARE r2 DECIMAL(3,1);
     DECLARE id_regular INT;
-    DECLARE id_promocionada INT;
-    DECLARE id_recursa INT;
+    DECLARE id_promocion INT;
+    DECLARE id_recursar INT;
 
-    -- Obtener los IDs de estado según el nombre
+    -- Obtener los IDs de estado
     SELECT id_estado INTO id_regular FROM estado_inscripcion_materia WHERE nombre = 'regular';
-    SELECT id_estado INTO id_promocionada FROM estado_inscripcion_materia WHERE nombre = 'promocionada';
-    SELECT id_estado INTO id_recursa FROM estado_inscripcion_materia WHERE nombre = 'recursa';
+    SELECT id_estado INTO id_promocion FROM estado_inscripcion_materia WHERE nombre = 'promocion';
+    SELECT id_estado INTO id_recursar FROM estado_inscripcion_materia WHERE nombre = 'recursar';
 
-    -- Verificar notas del alumno en esta inscripción
-    SELECT
-        SUM(CASE WHEN nota < 6 THEN 1 ELSE 0 END),
-        MIN(CASE WHEN nota < 7 THEN 0 ELSE 1 END)
-    INTO
-        notas_bajas, todas_7
-    FROM evaluacion
-    WHERE id_inscripcion = NEW.id_inscripcion;
+    -- Obtener las notas correspondientes
+    SELECT MAX(e.nota)
+    INTO p1
+    FROM evaluacion e
+    JOIN tipo_evaluacion t ON e.id_tipo = t.id_tipo
+    WHERE e.id_inscripcion = NEW.id_inscripcion AND t.nombre = 'parcial1';
 
-    -- Actualizar el estado según las notas
-    IF notas_bajas > 0 THEN
+    SELECT MAX(e.nota)
+    INTO p2
+    FROM evaluacion e
+    JOIN tipo_evaluacion t ON e.id_tipo = t.id_tipo
+    WHERE e.id_inscripcion = NEW.id_inscripcion AND t.nombre = 'parcial2';
+
+    SELECT MAX(e.nota)
+    INTO r1
+    FROM evaluacion e
+    JOIN tipo_evaluacion t ON e.id_tipo = t.id_tipo
+    WHERE e.id_inscripcion = NEW.id_inscripcion AND t.nombre = 'recuperatorio1';
+
+    SELECT MAX(e.nota)
+    INTO r2
+    FROM evaluacion e
+    JOIN tipo_evaluacion t ON e.id_tipo = t.id_tipo
+    WHERE e.id_inscripcion = NEW.id_inscripcion AND t.nombre = 'recuperatorio2';
+
+    -- Asignar valores nulos a 0 por seguridad
+    SET p1 = IFNULL(p1, 0);
+    SET p2 = IFNULL(p2, 0);
+    SET r1 = IFNULL(r1, 0);
+    SET r2 = IFNULL(r2, 0);
+
+    -- Determinar estado
+    IF p1 >= 7 AND p2 >= 7 THEN
         UPDATE inscripcion_materia
-        SET id_estado = id_recursa
+        SET id_estado = id_promocion
         WHERE id_inscripcion = NEW.id_inscripcion;
-    ELSEIF todas_7 = 1 THEN
-        UPDATE inscripcion_materia
-        SET id_estado = id_promocionada
-        WHERE id_inscripcion = NEW.id_inscripcion;
-    ELSE
+
+    ELSEIF (p1 >= 6 OR r1 >= 6) AND (p2 >= 6 OR r2 >= 6) THEN
         UPDATE inscripcion_materia
         SET id_estado = id_regular
         WHERE id_inscripcion = NEW.id_inscripcion;
+
+    ELSE
+        UPDATE inscripcion_materia
+        SET id_estado = id_recursar
+        WHERE id_inscripcion = NEW.id_inscripcion;
     END IF;
+
 END
 $$
 DELIMITER ;
@@ -157,13 +416,70 @@ CREATE TABLE IF NOT EXISTS `inscripcion_materia` (
   `id_materia` int NOT NULL,
   `anio_academico` year NOT NULL,
   `semestre` tinyint NOT NULL,
-  `id_estado` int NOT NULL,
+  `id_estado` int NOT NULL DEFAULT '4',
   `intentos_final` tinyint DEFAULT '0',
   PRIMARY KEY (`id_inscripcion`),
   KEY `id_alumno` (`id_alumno`),
   KEY `id_materia` (`id_materia`),
   KEY `id_estado` (`id_estado`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `inscripcion_materia`
+--
+
+INSERT INTO `inscripcion_materia` (`id_inscripcion`, `id_alumno`, `id_materia`, `anio_academico`, `semestre`, `id_estado`, `intentos_final`) VALUES
+(1, 1, 1, '2025', 1, 1, 0),
+(2, 2, 1, '2025', 1, 1, 0),
+(3, 3, 1, '2025', 1, 2, 0),
+(4, 4, 1, '2025', 1, 3, 0),
+(5, 5, 1, '2025', 1, 2, 0),
+(6, 6, 1, '2025', 1, 1, 0);
+
+--
+-- Triggers `inscripcion_materia`
+--
+DROP TRIGGER IF EXISTS `trg_insertar_nota_final_automaticamente`;
+DELIMITER $$
+CREATE TRIGGER `trg_insertar_nota_final_automaticamente` AFTER UPDATE ON `inscripcion_materia` FOR EACH ROW BEGIN
+    DECLARE parcial1 DECIMAL(3,1);
+    DECLARE parcial2 DECIMAL(3,1);
+    DECLARE promedio DECIMAL(3,1);
+    DECLARE id_tipo_final INT;
+
+    IF @desactivar_trigger_final IS NULL OR @desactivar_trigger_final = FALSE THEN
+        IF NEW.id_estado = (SELECT id_estado FROM estado_inscripcion_materia WHERE nombre = 'promocion')
+           AND OLD.id_estado <> NEW.id_estado THEN
+
+            SELECT MAX(e.nota)
+            INTO parcial1
+            FROM evaluacion e
+            JOIN tipo_evaluacion t ON e.id_tipo = t.id_tipo
+            WHERE e.id_inscripcion = NEW.id_inscripcion AND t.nombre = 'parcial1';
+
+            SELECT MAX(e.nota)
+            INTO parcial2
+            FROM evaluacion e
+            JOIN tipo_evaluacion t ON e.id_tipo = t.id_tipo
+            WHERE e.id_inscripcion = NEW.id_inscripcion AND t.nombre = 'parcial2';
+
+            SET promedio = ROUND((parcial1 + parcial2)/2, 1);
+
+            SELECT id_tipo INTO id_tipo_final FROM tipo_evaluacion WHERE nombre = 'final';
+
+            IF NOT EXISTS (
+                SELECT 1 FROM evaluacion
+                WHERE id_inscripcion = NEW.id_inscripcion AND id_tipo = id_tipo_final
+            ) THEN
+                INSERT INTO evaluacion(id_inscripcion, id_tipo, fecha, nota)
+                VALUES (NEW.id_inscripcion, id_tipo_final, CURDATE(), promedio);
+            END IF;
+
+        END IF;
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -282,7 +598,15 @@ CREATE TABLE IF NOT EXISTS `profesor` (
   `especialidad` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id_profesor`),
   UNIQUE KEY `id_usuario` (`id_usuario`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `profesor`
+--
+
+INSERT INTO `profesor` (`id_profesor`, `id_usuario`, `titulo_academico`, `especialidad`) VALUES
+(1, 7, 'Profesor Universitario', 'Ciencias Exactas'),
+(2, 8, 'Profesor Universitario', 'Ciencias Exactas');
 
 -- --------------------------------------------------------
 
@@ -297,6 +621,14 @@ CREATE TABLE IF NOT EXISTS `profesor_materia` (
   PRIMARY KEY (`id_profesor`,`id_materia`),
   KEY `id_materia` (`id_materia`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `profesor_materia`
+--
+
+INSERT INTO `profesor_materia` (`id_profesor`, `id_materia`) VALUES
+(1, 1),
+(2, 1);
 
 -- --------------------------------------------------------
 
@@ -366,7 +698,53 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   PRIMARY KEY (`id_usuario`),
   UNIQUE KEY `email` (`email`),
   KEY `id_rol` (`id_rol`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `usuario`
+--
+
+INSERT INTO `usuario` (`id_usuario`, `contrasena`, `id_rol`, `nombre`, `apellido`, `direccion`, `telefono`, `email`, `activo`) VALUES
+(1, '81dc9bdb52d04dc20036dbd8313ed055', 2, 'Juan', 'Alonso', 'Calle Random 123', '2616743521', 'juan.alonso@alumno.com', 1),
+(2, '81dc9bdb52d04dc20036dbd8313ed055', 2, 'Jorge', 'Perez', 'Calle Random 123', '2616743521', 'jorge.perez@alumno.com', 1),
+(3, '81dc9bdb52d04dc20036dbd8313ed055', 2, 'Carla', 'Suarez', 'Calle Random 123', '2616743521', 'carla.suarez@alumno.com', 1),
+(4, '81dc9bdb52d04dc20036dbd8313ed055', 2, 'Delfina', 'Quiroga', 'Calle Random 123', '2616743521', 'delfina.quiroga@alumno.com', 1),
+(5, '81dc9bdb52d04dc20036dbd8313ed055', 2, 'Pablo', 'Ramiz', 'Calle Random 123', '2616743521', 'pablo.ramiz@alumno.com', 1),
+(6, '81dc9bdb52d04dc20036dbd8313ed055', 2, 'Martina', 'Ruiz', 'Calle Random 123', '2616743521', 'martina.ruiz@alumno.com', 1),
+(7, '81dc9bdb52d04dc20036dbd8313ed055', 3, 'Pedro', 'Alonso', 'Calle Random 124', '2616743521', 'pedro.alonso@profesor.com', 1),
+(8, '81dc9bdb52d04dc20036dbd8313ed055', 3, 'Marisa', 'Rodriguez', 'Calle Random 124', '2616743521', 'marisa.rodriguez@profesor.com', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_notas_por_inscripcion`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `v_notas_por_inscripcion`;
+CREATE TABLE IF NOT EXISTS `v_notas_por_inscripcion` (
+`id_inscripcion` int
+,`id_materia` int
+,`anio_academico` year
+,`id_alumno` int
+,`nombre_alumno` varchar(100)
+,`apellido_alumno` varchar(100)
+,`estado_inscripcion` varchar(50)
+,`parcial_1` decimal(3,1)
+,`parcial_2` decimal(3,1)
+,`recuperatorio_1` decimal(3,1)
+,`recuperatorio_2` decimal(3,1)
+,`nota_final` decimal(3,1)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_notas_por_inscripcion`
+--
+DROP TABLE IF EXISTS `v_notas_por_inscripcion`;
+
+DROP VIEW IF EXISTS `v_notas_por_inscripcion`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_notas_por_inscripcion`  AS SELECT `im`.`id_inscripcion` AS `id_inscripcion`, `im`.`id_materia` AS `id_materia`, `im`.`anio_academico` AS `anio_academico`, `a`.`id_alumno` AS `id_alumno`, `u`.`nombre` AS `nombre_alumno`, `u`.`apellido` AS `apellido_alumno`, `eim`.`nombre` AS `estado_inscripcion`, max((case when (`tev`.`nombre` = 'parcial1') then `ev`.`nota` end)) AS `parcial_1`, max((case when (`tev`.`nombre` = 'parcial2') then `ev`.`nota` end)) AS `parcial_2`, max((case when (`tev`.`nombre` = 'recuperatorio1') then `ev`.`nota` end)) AS `recuperatorio_1`, max((case when (`tev`.`nombre` = 'recuperatorio2') then `ev`.`nota` end)) AS `recuperatorio_2`, max((case when (`tev`.`nombre` = 'final') then `ev`.`nota` end)) AS `nota_final` FROM (((((`inscripcion_materia` `im` join `alumno` `a` on((`im`.`id_alumno` = `a`.`id_alumno`))) join `usuario` `u` on((`a`.`id_usuario` = `u`.`id_usuario`))) join `estado_inscripcion_materia` `eim` on((`im`.`id_estado` = `eim`.`id_estado`))) left join `evaluacion` `ev` on((`ev`.`id_inscripcion` = `im`.`id_inscripcion`))) left join `tipo_evaluacion` `tev` on((`ev`.`id_tipo` = `tev`.`id_tipo`))) GROUP BY `im`.`id_inscripcion`, `im`.`id_materia`, `im`.`anio_academico`, `a`.`id_alumno`, `u`.`nombre`, `u`.`apellido`, `eim`.`nombre` ;
 
 --
 -- Constraints for dumped tables
