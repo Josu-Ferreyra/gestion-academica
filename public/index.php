@@ -6,6 +6,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 require_once __DIR__ . '/../app/controllers/AlumnoController.php';
 require_once __DIR__ . '/../app/controllers/ProfesorController.php';
+require_once __DIR__ . '/../app/controllers/MateriaController.php';
 
 /**
  * Función para manejar el enrutamiento de la aplicación.
@@ -16,6 +17,7 @@ function handleRouting($url) {
 
   $controllerName = ucfirst($parts[0] ?? 'auth') . 'Controller';
   $action = $parts[1] ?? 'loadView';
+  $params = array_slice($parts, 2);
 
   if (!class_exists($controllerName)) {
     send404("Controlador no encontrado: $controllerName");
@@ -29,7 +31,7 @@ function handleRouting($url) {
     return;
   }
 
-  $controller->{$action}();
+  call_user_func_array([$controller, $action], $params);
 }
 
 /**
