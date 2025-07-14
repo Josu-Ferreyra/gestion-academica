@@ -7,7 +7,7 @@ require_once 'core/Auth.php';
 
 $router = new Router();
 
-$router->get('/', 'HomeController@index');
+$router->get('/', 'AuthController@login');
 $router->get('/admin', 'AdminController@index', ['admin']);
 $router->get('/login', 'AuthController@login');
 $router->post('/login', 'AuthController@doLogin');

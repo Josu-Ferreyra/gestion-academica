@@ -46,9 +46,18 @@ class Router {
   public function dispatch($uri, $method) {
     $uri = parse_url($uri, PHP_URL_PATH);
 
+    $basePath = dirname($_SERVER['SCRIPT_NAME']);
+    if ($basePath !== '/' && strpos($uri, $basePath) === 0) {
+      $uri = substr($uri, strlen($basePath));
+    }
+
+    if (empty($uri)) {
+      $uri = '/';
+    }
+
     if (!isset($this->routes[$method][$uri])) {
       http_response_code(404);
-      echo "404 - Página no encontrada";
+      echo "404 - Página no encontrada (Ruta solicitada: $uri)";
       return;
     }
 
