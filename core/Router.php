@@ -2,21 +2,47 @@
 require_once 'core/Auth.php';
 
 class Router {
-
+  /**
+   * Array que almacena las rutas registradas para los métodos HTTP GET y POST.
+   *
+   * @var array
+   */
   private $routes = [
     'GET' => [],
     'POST' => []
   ];
 
-
+  /**
+   * Registra una nueva ruta para el método HTTP GET.
+   *
+   * @param string $uri URI de la ruta.
+   * @param string $action Acción en formato 'Controlador@metodo'.
+   * @param array $roles (Opcional) Lista de roles autorizados para acceder a la ruta.
+   * @return void
+   */
   public function get($uri, $action, $roles = []) {
     $this->routes['GET'][$uri] = ['action' => $action, 'roles' => $roles];
   }
 
+  /**
+   * Registra una nueva ruta para el método HTTP POST.
+   *
+   * @param string $uri URI de la ruta.
+   * @param string $action Acción en formato 'Controlador@metodo'.
+   * @param array $roles (Opcional) Lista de roles autorizados para acceder a la ruta.
+   * @return void
+   */
   public function post($uri, $action, $roles = []) {
     $this->routes['POST'][$uri] = ['action' => $action, 'roles' => $roles];
   }
 
+  /**
+   * Despacha una solicitud HTTP a la acción correspondiente según la URI y el método.
+   *
+   * @param string $uri URI de la solicitud.
+   * @param string $method Método HTTP de la solicitud (GET o POST).
+   * @return void
+   */
   public function dispatch($uri, $method) {
     $uri = parse_url($uri, PHP_URL_PATH);
 

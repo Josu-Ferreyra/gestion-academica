@@ -1,10 +1,14 @@
 <?php
-// core/Auth.php
-
 require_once 'core/DB.php';
 
 class Auth {
-  // Intenta loguear al usuario con email y contraseña (MD5)
+  /**
+   * Intenta loguear al usuario con email y contraseña (MD5).
+   *
+   * @param string $email Correo electrónico del usuario.
+   * @param string $password Contraseña del usuario (sin encriptar).
+   * @return bool Devuelve true si el inicio de sesión fue exitoso, false en caso contrario.
+   */
   public static function attempt($email, $password) {
     $db = DB::getConnection();
 
@@ -31,23 +35,40 @@ class Auth {
     return false;
   }
 
-  // Verifica si el usuario actual tiene alguno de los roles requeridos
+  /**
+   * Verifica si el usuario actual tiene alguno de los roles requeridos.
+   *
+   * @param array $roles Lista de roles permitidos.
+   * @return bool Devuelve true si el usuario tiene uno de los roles, false en caso contrario.
+   */
   public static function checkRoles(array $roles): bool {
     if (!isset($_SESSION['user'])) return false;
     return in_array($_SESSION['user']['rol'], $roles);
   }
 
-  // Devuelve true si hay usuario logueado
+  /**
+   * Verifica si hay un usuario logueado.
+   *
+   * @return bool Devuelve true si hay un usuario logueado, false en caso contrario.
+   */
   public static function check(): bool {
     return isset($_SESSION['user']);
   }
 
-  // Devuelve los datos del usuario actual
+  /**
+   * Devuelve los datos del usuario actual.
+   *
+   * @return array|null Devuelve un array con los datos del usuario o null si no hay usuario logueado.
+   */
   public static function user() {
     return $_SESSION['user'] ?? null;
   }
 
-  // Cierra la sesión
+  /**
+   * Cierra la sesión del usuario actual.
+   *
+   * @return void
+   */
   public static function logout() {
     session_destroy();
     $_SESSION = [];
