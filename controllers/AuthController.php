@@ -10,7 +10,7 @@ class AuthController {
    */
   public function login() {
     if (Auth::check()) {
-      header('Location: /');
+      header('Location: ./');
       exit;
     }
 
@@ -30,7 +30,7 @@ class AuthController {
     $password = $_POST['password'] ?? '';
 
     if (Auth::attempt($email, $password)) {
-      header('Location: /');
+      header('Location: ./');
     } else {
       $error = "Credenciales incorrectas o usuario inactivo.";
       include 'views/login.php';
@@ -44,7 +44,34 @@ class AuthController {
    */
   public function logout() {
     Auth::logout();
-    header('Location: /login');
+    header('Location: ./login');
+    exit;
+  }
+
+  /**
+   * Redirige al usuario autenticado según su rol.
+   * Si el usuario no está autenticado, lo redirige a la página de login.
+   *
+   * @return void
+   */
+  public function redirect() {
+    if (Auth::check()) {
+      switch (Auth::getRole()) {
+        case 'admin':
+          header('Location: ./admin');
+          break;
+
+        case 'profesor':
+          header('Location: ./profesor');
+          break;
+
+        default:
+          header('Location: ./alumno');
+          break;
+      }
+    } else {
+      header('Location: ./login');
+    }
     exit;
   }
 }

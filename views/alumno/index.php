@@ -31,7 +31,7 @@
 
 <body>
   <div class="panel">
-    <a class="logout" href="/logout">Cerrar sesión</a>
+    <a class="logout" href="./logout">Cerrar sesión</a>
     <h1>Bienvenido, <?= htmlspecialchars($user['nombre']) ?></h1>
     <p>Estás accediendo como <strong>Alumno</strong>.</p>
     <p>Aquí se podrán mostrar tus materias, evaluaciones, y más funcionalidades específicas del rol.</p>

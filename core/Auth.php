@@ -13,12 +13,12 @@ class Auth {
     $db = DB::getConnection();
 
     $stmt = $db->prepare('
-            SELECT u.id_usuario, u.nombre, u.apellido, u.email, u.id_rol, r.nombre AS rol
-            FROM usuario u
-            JOIN rol_usuario r ON u.id_rol = r.id_rol
-            WHERE u.email = :email AND u.contrasena = MD5(:password) AND u.activo = 1
-            LIMIT 1
-        ');
+      SELECT u.id_usuario, u.nombre, u.apellido, u.email, u.id_rol, r.nombre AS rol
+      FROM usuario u
+      JOIN rol_usuario r ON u.id_rol = r.id_rol
+      WHERE u.email = :email AND u.contrasena = MD5(:password) AND u.activo = 1
+      LIMIT 1
+    ');
 
     $stmt->execute([
       ':email' => $email,
@@ -62,6 +62,15 @@ class Auth {
    */
   public static function user() {
     return $_SESSION['user'] ?? null;
+  }
+
+  /**
+   * Devuelve el rol del usuario actual.
+   *
+   * @return string|null Devuelve un string con el rol del usuario o null si no hay usuario logueado.
+   */
+  public static function getRole() {
+    return $_SESSION['user']['rol'] ?? null;
   }
 
   /**

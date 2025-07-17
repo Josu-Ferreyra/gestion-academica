@@ -55,7 +55,7 @@
     <?php if (isset($error)): ?>
       <div class="error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
-    <form method="POST" action="/login">
+    <form method="POST" action="./login">
       <input type="email" name="email" placeholder="Correo electrónico" required>
       <input type="password" name="password" placeholder="Contraseña" required>
       <button type="submit">Ingresar</button>
