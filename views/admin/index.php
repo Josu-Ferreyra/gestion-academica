@@ -35,6 +35,7 @@
     <h1>Panel de Administración</h1>
     <p>Hola, <?= htmlspecialchars($user['nombre']) ?>. Estás accediendo como <strong>Administrador</strong>.</p>
     <p>Desde aquí podrás gestionar usuarios, carreras, materias y otros módulos clave del sistema.</p>
+    <a href="./alumno/create" class="btn btn-primary">Crear Alumno</a>
   </div>
 </body>
 

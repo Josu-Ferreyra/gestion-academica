@@ -13,6 +13,8 @@ $router->get('/login', 'AuthController@login');
 $router->post('/login', 'AuthController@doLogin');
 $router->get('/logout', 'AuthController@logout');
 $router->get('/alumno', 'AlumnoController@index', ['alumno']);
+$router->get('/alumno/create', 'AlumnoController@viewCreateAlumno', ['admin']);
+$router->post('/alumno/create', 'AlumnoController@createAlumno', ['admin']);
 $router->get('/profesor', 'ProfesorController@index', ['profesor']);
 
 $router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
