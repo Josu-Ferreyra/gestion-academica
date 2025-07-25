@@ -28,4 +28,8 @@ $router->get('/profesor', 'ProfesorController@index', ['profesor']);
 $router->get('/profesor/create', 'ProfesorController@viewCreateProfesor', ['admin']);
 $router->post('/profesor/create', 'ProfesorController@createProfesor', ['admin']);
 
+// Carrera routes
+$router->get('/carrera/create', 'CarreraController@viewCreateCarrera', ['admin']);
+$router->post('/carrera/create', 'CarreraController@createCarrera', ['admin']);
+
 $router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
