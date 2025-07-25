@@ -36,6 +36,7 @@
     <p>Hola, <?= htmlspecialchars($user['nombre']) ?>. Estás accediendo como <strong>Administrador</strong>.</p>
     <p>Desde aquí podrás gestionar usuarios, carreras, materias y otros módulos clave del sistema.</p>
     <a href="./alumno/create" class="btn btn-primary">Crear Alumno</a>
+    <a href="./profesor/create" class="btn btn-primary">Crear Profesor</a>
   </div>
 </body>
 
