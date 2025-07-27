@@ -94,4 +94,38 @@ class Inscripcion {
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
   }
+
+  /**
+   * Obtiene los detalles de las inscripciones a una materia específica.
+   *
+   * @param int $id_materia ID de la materia.
+   * @return array Un array asociativo con los detalles de las inscripciones.
+   * @throws Exception Si el ID de la materia está vacío o no se encuentra.
+   */
+  public static function getInscripcionesMateriaDetails($id_materia) {
+    if (empty($id_materia)) {
+      throw new Exception("ID de materia no proporcionado.");
+    }
+
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("
+      SELECT
+        nombre_alumno,
+        apellido_alumno,
+        parcial_1,
+        parcial_2,
+        recuperatorio_1,
+        recuperatorio_2,
+        nota_final,
+        estado_inscripcion
+      FROM v_notas_por_inscripcion
+      WHERE id_materia = :id_materia
+    ");
+
+    $stmt->bindParam(':id_materia', $id_materia);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
 }

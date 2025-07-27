@@ -99,4 +99,34 @@ class Materia {
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
   }
+
+  /**
+   * Obtiene las materias asociadas a un profesor específico.
+   *
+   * @param int $id_profesor ID del profesor.
+   * @return array Un array asociativo con las materias del profesor.
+   * @throws Exception Si el ID de profesor está vacío o no se encuentra.
+   */
+  public static function getMateriasByProfesor($id_profesor) {
+    if (empty($id_profesor)) {
+      throw new Exception("El ID de profesor no puede estar vacío.");
+    }
+
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("
+      SELECT
+        m.id_materia,
+        m.nombre,
+        m.anio,
+        m.semestre
+      FROM materia m
+      INNER JOIN profesor_materia pm ON m.id_materia = pm.id_materia
+      WHERE pm.id_profesor = :id_profesor
+    ");
+    $stmt->bindParam(':id_profesor', $id_profesor);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
 }

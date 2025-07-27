@@ -5,6 +5,7 @@ require_once 'models/Profesor.php';
 require_once 'models/Usuario.php';
 require_once 'models/Materia.php';
 require_once 'models/Carrera.php';
+require_once 'models/Inscripcion.php';
 
 class ProfesorController {
   /**
@@ -72,5 +73,41 @@ class ProfesorController {
       echo "Error al crear el profesor: " . $e->getMessage();
       return;
     }
+  }
+
+  /**
+   * Muestra las materias asignadas al profesor autenticado.
+   * Obtiene el ID del usuario y del profesor, y luego las materias asociadas.
+   *
+   * @return void
+   */
+  public function viewMaterias() {
+    $id_usuario = $_SESSION['user']['id_usuario'];
+    $id_profesor = Profesor::getProfesorIdByUsuario($id_usuario);
+
+    $materias = Materia::getMateriasByProfesor($id_profesor);
+
+    require_once 'views/profesor/materias.php';
+  }
+
+  /**
+   * Muestra los detalles de las inscripciones a una materia específica.
+   * Obtiene el ID de la materia desde los parámetros GET y recupera las inscripciones.
+   * Si no se proporciona un ID, devuelve un código de respuesta 400.
+   *
+   * @return void
+   */
+  public function viewMateriaDetails() {
+    $id_materia = $_GET['id'] ?? null;
+
+    if (!$id_materia) {
+      http_response_code(400);
+      echo "400 - ID de materia no proporcionado";
+      return;
+    }
+
+    $inscripciones = Inscripcion::getInscripcionesMateriaDetails($id_materia);
+
+    require_once 'views/profesor/materia_details.php';
   }
 }

@@ -30,6 +30,8 @@ $router->get('/alumno/estado_academico', 'InscripcionController@viewEstadoAcadem
 $router->get('/profesor', 'ProfesorController@index', ['profesor']);
 $router->get('/profesor/create', 'ProfesorController@viewCreateProfesor', ['admin']);
 $router->post('/profesor/create', 'ProfesorController@createProfesor', ['admin']);
+$router->get('/profesor/materias', 'ProfesorController@viewMaterias', ['profesor']);
+$router->get('/profesor/materia/details', 'ProfesorController@viewMateriaDetails', ['profesor']);
 
 // Carrera routes
 $router->get('/carrera/create', 'CarreraController@viewCreateCarrera', ['admin']);

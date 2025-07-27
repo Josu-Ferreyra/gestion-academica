@@ -34,7 +34,8 @@
     <a class="logout" href="./logout">Cerrar sesión</a>
     <h1>Bienvenido, <?= htmlspecialchars($user['nombre']) ?></h1>
     <p>Estás accediendo como <strong>Profesor</strong>.</p>
-    <p>Aquí podrás administrar materias, cargar notas y más.</p>
+
+    <a href="./profesor/materias">Ver Materias</a>
   </div>
 </body>
 

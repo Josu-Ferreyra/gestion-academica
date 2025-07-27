@@ -73,4 +73,25 @@ class Profesor {
 
     return $profesorId;
   }
+
+  /**
+   * Obtiene el ID del profesor asociado a un usuario.
+   *
+   * @param int $id_usuario ID del usuario.
+   * @return int|null ID del profesor o null si no se encuentra.
+   * @throws Exception Si el ID del usuario no se proporciona.
+   */
+  public static function getProfesorIdByUsuario($id_usuario) {
+    if (empty($id_usuario)) {
+      throw new Exception("ID de usuario no proporcionado.");
+    }
+
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("SELECT id_profesor FROM profesor WHERE id_usuario = :id_usuario");
+    $stmt->bindParam(':id_usuario', $id_usuario);
+    $stmt->execute();
+
+    return $stmt->fetchColumn();
+  }
 }
