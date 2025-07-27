@@ -38,6 +38,7 @@
     <a href="./alumno/create" class="btn btn-primary">Crear Alumno</a>
     <a href="./profesor/create" class="btn btn-primary">Crear Profesor</a>
     <a href="./carrera/create" class="btn btn-primary">Crear Carrera</a>
+    <a href="./materia/create" class="btn btn-primary">Crear Materia</a>
   </div>
 </body>
 

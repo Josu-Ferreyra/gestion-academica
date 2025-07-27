@@ -27,4 +27,47 @@ class Materia {
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
   }
+
+  /**
+   * Crea una nueva materia en la base de datos.
+   *
+   * @param array $data Datos de la materia, incluyendo 'nombre', 'anio', 'semestre', 'id_carrera' y 'id_profesor'.
+   * @return int ID de la materia creada.
+   * @throws Exception Si faltan datos requeridos.
+   */
+  public static function createMateria($data) {
+    if (!isset($data['nombre']) || !isset($data['anio']) || !isset($data['semestre']) || !isset($data['id_carrera'])) {
+      throw new Exception("Faltan datos requeridos para crear la materia.");
+    }
+
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("
+      INSERT INTO materia (nombre, anio, semestre, id_carrera)
+      VALUES (:nombre, :anio, :semestre, :id_carrera)
+    ");
+
+    $stmt->bindParam(':nombre', $data['nombre']);
+    $stmt->bindParam(':anio', $data['anio']);
+    $stmt->bindParam(':semestre', $data['semestre']);
+    $stmt->bindParam(':id_carrera', $data['id_carrera']);
+
+    $stmt->execute();
+
+    $id_materia = $db->lastInsertId();
+
+    if ($data['id_profesor'] != null && $data['id_profesor'] != '') {
+      $id_profesor = $data['id_profesor'];
+
+      $stmt = $db->prepare("
+        INSERT INTO profesor_materia (id_materia, id_profesor)
+        VALUES (:id_materia, :id_profesor)
+      ");
+      $stmt->bindParam(':id_materia', $id_materia);
+      $stmt->bindParam(':id_profesor', $id_profesor);
+      $stmt->execute();
+    }
+
+    return $id_materia;
+  }
 }

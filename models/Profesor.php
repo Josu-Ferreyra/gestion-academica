@@ -2,6 +2,33 @@
 
 class Profesor {
   /**
+   * Obtiene todos los profesores de la base de datos.
+   *
+   * @return array Un array asociativo con los profesores, donde cada elemento contiene 'id_profesor', 'nombre', 'titulo_academico', 'especialidad' y 'materias'.
+   */
+  public static function getAllProfesores() {
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("
+      SELECT
+        p.id_profesor,
+        u.nombre,
+        u.apellido,
+        p.titulo_academico,
+        p.especialidad,
+        GROUP_CONCAT(m.nombre SEPARATOR ', ') AS materias
+      FROM profesor p
+      INNER JOIN usuario u ON p.id_usuario = u.id_usuario
+      LEFT JOIN profesor_materia pm ON p.id_profesor = pm.id_profesor
+      LEFT JOIN materia m ON pm.id_materia = m.id_materia
+      GROUP BY p.id_profesor, u.nombre, p.titulo_academico, p.especialidad
+    ");
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  /**
    * Crea un nuevo profesor en la base de datos.
    *
    * @param array $data Datos del profesor, incluyendo id_usuario, titulo_academico, especialidad y materias.
