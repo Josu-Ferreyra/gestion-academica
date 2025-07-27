@@ -22,6 +22,8 @@ $router->get('/logout', 'AuthController@logout');
 $router->get('/alumno', 'AlumnoController@index', ['alumno']);
 $router->get('/alumno/create', 'AlumnoController@viewCreateAlumno', ['admin']);
 $router->post('/alumno/create', 'AlumnoController@createAlumno', ['admin']);
+$router->get('/alumno/enrol', 'InscripcionController@viewenrolMateria', ['alumno']);
+$router->post('/alumno/enrol', 'InscripcionController@enrolMateria', ['alumno']);
 
 // Profesor routes
 $router->get('/profesor', 'ProfesorController@index', ['profesor']);

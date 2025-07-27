@@ -70,4 +70,33 @@ class Materia {
 
     return $id_materia;
   }
+
+  /**
+   * Obtiene las materias asociadas a una carrera específica.
+   *
+   * @param int $id_carrera ID de la carrera.
+   * @return array Un array asociativo con las materias de la carrera.
+   * @throws Exception Si el ID de carrera está vacío o no se encuentra.
+   */
+  public static function getMateriasByCarrera($id_carrera) {
+    if (empty($id_carrera)) {
+      throw new Exception("El ID de carrera no puede estar vacío.");
+    }
+
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("
+      SELECT
+        m.id_materia,
+        m.nombre,
+        m.anio,
+        m.semestre
+      FROM materia m
+      WHERE m.id_carrera = :id_carrera
+    ");
+    $stmt->bindParam(':id_carrera', $id_carrera);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
 }

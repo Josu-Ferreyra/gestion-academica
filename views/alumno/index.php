@@ -34,7 +34,8 @@
     <a class="logout" href="./logout">Cerrar sesión</a>
     <h1>Bienvenido, <?= htmlspecialchars($user['nombre']) ?></h1>
     <p>Estás accediendo como <strong>Alumno</strong>.</p>
-    <p>Aquí se podrán mostrar tus materias, evaluaciones, y más funcionalidades específicas del rol.</p>
+
+    <a href="./alumno/enrol" class="btn">Inscribirse a Materias</a>
   </div>
 </body>
 

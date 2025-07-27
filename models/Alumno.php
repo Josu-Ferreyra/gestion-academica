@@ -32,4 +32,54 @@ class Alumno {
 
     return $db->lastInsertId();
   }
+
+  /**
+   * Obtiene el ID de la carrera asociada a un alumno dado su ID de usuario.
+   *
+   * @param int $id_usuario ID del usuario del alumno.
+   * @return int ID de la carrera asociada al alumno.
+   * @throws Exception Si no se encuentra el alumno o si ocurre un error en la consulta.
+   */
+  public static function getCarreraIdByUsuarioId($id_usuario) {
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare('
+      SELECT id_carrera FROM alumno WHERE id_usuario = :id_usuario
+    ');
+
+    $stmt->execute([':id_usuario' => $id_usuario]);
+
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result) {
+      return $result['id_carrera'];
+    } else {
+      throw new Exception('No se encontró el alumno con el ID de usuario proporcionado.');
+    }
+  }
+
+  /**
+   * Obtiene el ID del alumno dado su ID de usuario.
+   *
+   * @param int $id_usuario ID del usuario del alumno.
+   * @return int ID del alumno asociado al usuario.
+   * @throws Exception Si no se encuentra el alumno o si ocurre un error en la consulta.
+   */
+  public static function getAlumnoIdByUsuarioId($id_usuario) {
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare('
+      SELECT id_alumno FROM alumno WHERE id_usuario = :id_usuario
+    ');
+
+    $stmt->execute([':id_usuario' => $id_usuario]);
+
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result) {
+      return $result['id_alumno'];
+    } else {
+      throw new Exception('No se encontró el alumno con el ID de usuario proporcionado.');
+    }
+  }
 }
