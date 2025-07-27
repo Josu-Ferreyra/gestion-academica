@@ -36,6 +36,7 @@
     <p>Estás accediendo como <strong>Alumno</strong>.</p>
 
     <a href="./alumno/enrol" class="btn">Inscribirse a Materias</a>
+    <a href="./alumno/estado_academico" class="btn">Estado Académico</a>
   </div>
 </body>
 

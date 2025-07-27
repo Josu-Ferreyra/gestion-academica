@@ -73,4 +73,17 @@ class InscripcionController {
       echo json_encode(['message' => 'Error al inscribirse: ' . $e->getMessage()]);
     }
   }
+
+  /** Muestra el estado académico del alumno.
+   * Obtiene las materias inscritas y sus estados.
+   * Requiere que el usuario esté autenticado como alumno.
+   */
+  public function viewEstadoAcademico() {
+    $id_usuario = $_SESSION['user']['id_usuario'] ?? null;
+    $id_alumno = Alumno::getAlumnoIdByUsuarioId($id_usuario);
+
+    $materias = Inscripcion::getEstadoAcademicoByAlumno($id_alumno);
+
+    require_once 'views/alumno/estado_academico.php';
+  }
 }

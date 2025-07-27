@@ -57,4 +57,41 @@ class Inscripcion {
     $stmt->bindParam(':id_materia', $id_materia);
     $stmt->execute();
   }
+
+  /**
+   * Obtiene el estado académico de un alumno.
+   *
+   * @param int $id_alumno ID del alumno.
+   * @return array Un array asociativo con el estado académico del alumno.
+   * @throws Exception Si el ID del alumno está vacío o no se encuentra.
+   */
+  public static function getEstadoAcademicoByAlumno($id_alumno) {
+    if (empty($id_alumno)) {
+      throw new Exception("ID de alumno no proporcionado.");
+    }
+
+    $db = DB::getConnection();
+
+    $stmt = $db->prepare("
+      SELECT
+        view.anio_academico,
+        view.estado_inscripcion,
+        parcial_1,
+        parcial_2,
+        recuperatorio_1,
+        recuperatorio_2,
+        nota_final,
+        m.nombre AS nombre_materia,
+        m.anio AS anio,
+        m.semestre AS semestre
+      FROM v_notas_por_inscripcion AS view
+      INNER JOIN materia m ON view.id_materia = m.id_materia
+      WHERE id_alumno = :id_alumno
+    ");
+
+    $stmt->bindParam(':id_alumno', $id_alumno);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
 }
