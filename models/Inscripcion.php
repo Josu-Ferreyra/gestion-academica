@@ -111,8 +111,11 @@ class Inscripcion {
 
     $stmt = $db->prepare("
       SELECT
+        id_inscripcion,
+        id_alumno,
         nombre_alumno,
         apellido_alumno,
+        anio_academico,
         parcial_1,
         parcial_2,
         recuperatorio_1,
@@ -121,9 +124,38 @@ class Inscripcion {
         estado_inscripcion
       FROM v_notas_por_inscripcion
       WHERE id_materia = :id_materia
+      ORDER BY id_alumno
     ");
 
     $stmt->bindParam(':id_materia', $id_materia);
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  /** Actualiza las notas de los alumnos en una materia específica.
+   * Recibe un JSON con los datos de los alumnos, ID de materia y año académico.
+   *
+   * @param array $alumnos Array de alumnos con sus notas.
+   * @param int $id_materia ID de la materia.
+   * @param int $year Año académico.
+   * @return array Resultado de la actualización.
+   * @throws Exception Si falta información necesaria.
+   */
+  public static function updateNotas($alumnos, $id_materia, $year) {
+    if (empty($alumnos) || empty($id_materia) || empty($year)) {
+      throw new Exception("No se proporcionó la información necesaria");
+    }
+
+    $db = DB::getConnection();
+    $jsonAlumnos = json_encode($alumnos);
+
+    $stmt = $db->prepare("CALL actualizar_notas_alumnos(:alumnos, :id_materia, :year)");
+
+    $stmt->bindParam(':alumnos', $jsonAlumnos);
+    $stmt->bindParam(':id_materia', $id_materia);
+    $stmt->bindParam(':year', $year);
+
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -25,6 +25,7 @@ $router->post('/alumno/create', 'AlumnoController@createAlumno', ['admin']);
 $router->get('/alumno/enrol', 'InscripcionController@viewenrolMateria', ['alumno']);
 $router->post('/alumno/enrol', 'InscripcionController@enrolMateria', ['alumno']);
 $router->get('/alumno/estado_academico', 'InscripcionController@viewEstadoAcademico', ['alumno']);
+$router->post('/alumno/update_notas', 'InscripcionController@updateNotas', ['profesor']);
 
 // Profesor routes
 $router->get('/profesor', 'ProfesorController@index', ['profesor']);

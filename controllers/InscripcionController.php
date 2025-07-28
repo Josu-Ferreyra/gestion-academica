@@ -86,4 +86,31 @@ class InscripcionController {
 
     require_once 'views/alumno/estado_academico.php';
   }
+
+  /** Actualiza las notas de los alumnos en una materia.
+   * Recibe un JSON con los datos de los alumnos, ID de materia y año.
+   * Valida que se proporcionen todos los datos necesarios.
+   * Maneja errores y devuelve un mensaje de éxito o error.
+   */
+  public function updateNotas() {
+    $rawData = file_get_contents("php://input");
+    $data = json_decode($rawData, true);
+    $alumnos = $data['alumnos'];
+    $id_materia = $data['id_materia'];
+    $year = $data['year'];
+
+    if (empty($alumnos) || empty($id_materia) || empty($year)) {
+      http_response_code(400);
+      echo json_encode(['message' => 'No se proporcionaron los datos necesarios']);
+      return;
+    }
+
+    try {
+      Inscripcion::updateNotas($alumnos, $id_materia, $year);
+      echo json_encode(['message' => 'Notas actualizadas correctamente']);
+    } catch (Exception $e) {
+      http_response_code(500);
+      echo json_encode(['message' => 'Error al actualizar las notas: ' . $e->getMessage()]);
+    }
+  }
 }
